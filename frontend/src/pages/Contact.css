@@ -1,0 +1,48 @@
+.contact-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem;
+  margin-top: 2rem;
+}
+
+.contact-info h3 {
+  font-size: 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.contact-info > p {
+  color: var(--text-muted);
+  line-height: 1.7;
+  margin-bottom: 2rem;
+}
+
+.contact-detail {
+  margin-bottom: 1.5rem;
+}
+
+.contact-detail strong {
+  display: block;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--gold);
+  margin-bottom: 0.25rem;
+}
+
+.contact-detail p {
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.contact-form-wrapper {
+  background: var(--white);
+  padding: 2rem;
+  border-radius: 4px;
+  box-shadow: var(--shadow);
+}
+
+@media (max-width: 768px) {
+  .contact-layout {
+    grid-template-columns: 1fr;
+  }
+}

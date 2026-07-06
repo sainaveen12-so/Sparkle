@@ -1,0 +1,131 @@
+.cart-layout {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 2.5rem;
+  margin-top: 2rem;
+}
+
+.cart-item {
+  display: grid;
+  grid-template-columns: 100px 1fr auto auto auto;
+  gap: 1.25rem;
+  align-items: center;
+  padding: 1.25rem;
+  background: var(--white);
+  border-radius: 4px;
+  box-shadow: var(--shadow);
+  margin-bottom: 1rem;
+}
+
+.cart-item img {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.cart-item-info h3 {
+  font-size: 1rem;
+  margin-bottom: 0.35rem;
+}
+
+.cart-item-info h3:hover {
+  color: var(--gold);
+}
+
+.cart-item-price {
+  color: var(--gold-dark);
+  font-weight: 600;
+}
+
+.cart-item-qty {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--cream-dark);
+  border-radius: 2px;
+}
+
+.cart-item-qty button {
+  width: 32px;
+  height: 36px;
+  background: var(--white);
+  font-size: 1rem;
+}
+
+.cart-item-qty span {
+  width: 36px;
+  text-align: center;
+  font-weight: 600;
+}
+
+.cart-item-total {
+  font-weight: 700;
+  min-width: 90px;
+  text-align: right;
+}
+
+.cart-remove {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1.1rem;
+  padding: 0.25rem;
+}
+
+.cart-remove:hover {
+  color: #991b1b;
+}
+
+.cart-summary {
+  background: var(--white);
+  padding: 1.75rem;
+  border-radius: 4px;
+  box-shadow: var(--shadow);
+  height: fit-content;
+  position: sticky;
+  top: 120px;
+}
+
+.cart-summary h3 {
+  font-size: 1.1rem;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--cream-dark);
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+  font-size: 0.95rem;
+}
+
+.summary-row.total {
+  font-weight: 700;
+  font-size: 1.1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--cream-dark);
+  margin-top: 0.5rem;
+}
+
+@media (max-width: 768px) {
+  .cart-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .cart-item {
+    grid-template-columns: 80px 1fr;
+    gap: 0.75rem;
+  }
+
+  .cart-item img {
+    width: 80px;
+    height: 80px;
+  }
+
+  .cart-item-qty,
+  .cart-item-total,
+  .cart-remove {
+    grid-column: 2;
+  }
+}

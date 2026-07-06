@@ -1,0 +1,99 @@
+.auth-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 200px);
+}
+
+.auth-card {
+  background: var(--white);
+  padding: 2.5rem;
+  border-radius: 4px;
+  box-shadow: var(--shadow);
+  width: 100%;
+  max-width: 420px;
+  text-align: center;
+}
+
+.auth-logo {
+  height: 80px;
+  margin: 0 auto 1.5rem;
+}
+
+.auth-card h2 {
+  font-size: 1.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.auth-subtitle {
+  color: var(--text-muted);
+  margin-bottom: 1.5rem;
+  font-size: 0.95rem;
+}
+
+.auth-card form {
+  text-align: left;
+}
+
+.auth-footer {
+  margin-top: 1.5rem;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.auth-footer a {
+  color: var(--gold);
+  font-weight: 600;
+}
+
+.auth-footer a:hover {
+  text-decoration: underline;
+}
+
+.phone-input {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--cream-dark);
+  border-radius: 2px;
+  background: var(--white);
+  overflow: hidden;
+}
+
+.phone-input:focus-within {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(197, 160, 40, 0.15);
+}
+
+.phone-prefix {
+  padding: 0.75rem 0.75rem 0.75rem 1rem;
+  background: var(--cream);
+  color: var(--text-muted);
+  font-weight: 600;
+  border-right: 1px solid var(--cream-dark);
+}
+
+.phone-input input {
+  flex: 1;
+  border: none;
+  padding: 0.75rem 1rem;
+  outline: none;
+  background: transparent;
+}
+
+.otp-input {
+  text-align: center;
+  font-size: 1.5rem;
+  letter-spacing: 0.5em;
+  font-weight: 600;
+}
+
+.otp-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1rem;
+}
+
+.dev-otp {
+  text-align: center;
+  font-size: 0.9rem;
+}
