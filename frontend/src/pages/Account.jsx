@@ -124,6 +124,12 @@ export default function Account() {
                       {item.product.name} × {item.quantity} — ₹{Number(item.price).toLocaleString('en-IN')}
                     </p>
                   ))}
+                  <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                    Subtotal: ₹{Number(order.subtotal).toLocaleString('en-IN')}
+                    {Number(order.shipping_amount) > 0
+                      ? ` · Shipping: ₹${Number(order.shipping_amount).toLocaleString('en-IN')}`
+                      : ' · Shipping: Free'}
+                  </p>
                   <p style={{ marginTop: '0.5rem', fontWeight: 700 }}>
                     Total: ₹{Number(order.total_amount).toLocaleString('en-IN')}
                   </p>

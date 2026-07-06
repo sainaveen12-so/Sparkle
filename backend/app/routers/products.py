@@ -1,6 +1,6 @@
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session, joinedload
 
 from app.database import get_db
@@ -60,7 +60,5 @@ def get_product(slug: str, db: Session = Depends(get_db)):
         .first()
     )
     if not product:
-        from fastapi import HTTPException
-
         raise HTTPException(status_code=404, detail="Product not found")
     return product

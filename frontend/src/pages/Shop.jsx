@@ -9,17 +9,26 @@ export default function Shop() {
   const [products, setProducts] = useState([])
   const [categories, setCategories] = useState([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [searchInput, setSearchInput] = useState(searchParams.get('search') || '')
 
   const category = searchParams.get('category') || ''
   const search = searchParams.get('search') || ''
   const sort = searchParams.get('sort') || 'newest'
 
   useEffect(() => {
-    api.get('/categories').then((res) => setCategories(res.data))
+    api.get('/categories')
+      .then((res) => setCategories(res.data))
+      .catch(() => setError('Unable to load categories.'))
   }, [])
 
   useEffect(() => {
+    setSearchInput(search)
+  }, [search])
+
+  useEffect(() => {
     setLoading(true)
+    setError('')
     const params = new URLSearchParams()
     if (category) params.set('category', category)
     if (search) params.set('search', search)
@@ -28,6 +37,7 @@ export default function Shop() {
 
     api.get(`/products?${params}`)
       .then((res) => setProducts(res.data))
+      .catch(() => setError('Unable to load products. Please try again.'))
       .finally(() => setLoading(false))
   }, [category, search, sort])
 
@@ -84,12 +94,15 @@ export default function Shop() {
               <input
                 type="text"
                 placeholder="Search jewelry..."
-                defaultValue={search}
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') updateFilter('search', e.target.value)
                 }}
               />
             </div>
+
+            {error && <div className="alert alert-error">{error}</div>}
 
             {loading ? (
               <div className="loading">Loading products...</div>

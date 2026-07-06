@@ -5,6 +5,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session, joinedload
 
 from app.auth import get_current_user
+from app.config import settings
+from app.constants import calculate_shipping
 from app.database import get_db
 from app.models.cart import CartItem
 from app.models.order import Order, OrderItem
@@ -19,6 +21,17 @@ from app.schemas.order import (
 )
 
 router = APIRouter(tags=["Cart & Orders"])
+
+ALLOWED_PAYMENT_METHODS = {"cod"}
+
+
+def _load_cart_item(db: Session, item_id: int) -> CartItem | None:
+    return (
+        db.query(CartItem)
+        .options(joinedload(CartItem.product).joinedload(Product.category))
+        .filter(CartItem.id == item_id)
+        .first()
+    )
 
 
 @router.get("/cart", response_model=List[CartItemResponse])
@@ -43,8 +56,6 @@ def add_to_cart(
     product = db.query(Product).filter(Product.id == item.product_id).first()
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
-    if product.stock < item.quantity:
-        raise HTTPException(status_code=400, detail="Insufficient stock")
 
     existing = (
         db.query(CartItem)
@@ -54,16 +65,15 @@ def add_to_cart(
         )
         .first()
     )
+
+    new_quantity = item.quantity if not existing else existing.quantity + item.quantity
+    if product.stock < new_quantity:
+        raise HTTPException(status_code=400, detail="Insufficient stock")
+
     if existing:
-        existing.quantity += item.quantity
+        existing.quantity = new_quantity
         db.commit()
-        db.refresh(existing)
-        return (
-            db.query(CartItem)
-            .options(joinedload(CartItem.product).joinedload(Product.category))
-            .filter(CartItem.id == existing.id)
-            .first()
-        )
+        return _load_cart_item(db, existing.id)
 
     cart_item = CartItem(
         user_id=current_user.id,
@@ -73,12 +83,7 @@ def add_to_cart(
     db.add(cart_item)
     db.commit()
     db.refresh(cart_item)
-    return (
-        db.query(CartItem)
-        .options(joinedload(CartItem.product).joinedload(Product.category))
-        .filter(CartItem.id == cart_item.id)
-        .first()
-    )
+    return _load_cart_item(db, cart_item.id)
 
 
 @router.put("/cart/{item_id}", response_model=CartItemResponse)
@@ -90,19 +95,18 @@ def update_cart_item(
 ):
     cart_item = (
         db.query(CartItem)
+        .options(joinedload(CartItem.product))
         .filter(CartItem.id == item_id, CartItem.user_id == current_user.id)
         .first()
     )
     if not cart_item:
         raise HTTPException(status_code=404, detail="Cart item not found")
+    if cart_item.product.stock < item_data.quantity:
+        raise HTTPException(status_code=400, detail="Insufficient stock")
+
     cart_item.quantity = item_data.quantity
     db.commit()
-    return (
-        db.query(CartItem)
-        .options(joinedload(CartItem.product).joinedload(Product.category))
-        .filter(CartItem.id == item_id)
-        .first()
-    )
+    return _load_cart_item(db, item_id)
 
 
 @router.delete("/cart/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -139,45 +143,71 @@ def create_order(
 ):
     if not order_data.items:
         raise HTTPException(status_code=400, detail="Order must have at least one item")
-
-    total = Decimal("0")
-    order_items = []
-
-    for item in order_data.items:
-        product = db.query(Product).filter(Product.id == item.product_id).first()
-        if not product:
-            raise HTTPException(status_code=404, detail=f"Product {item.product_id} not found")
-        if product.stock < item.quantity:
-            raise HTTPException(status_code=400, detail=f"Insufficient stock for {product.name}")
-
-        price = product.sale_price or product.price
-        total += price * item.quantity
-        order_items.append((product, item.quantity, price))
-
-    order = Order(
-        user_id=current_user.id,
-        total_amount=total,
-        shipping_address=order_data.shipping_address,
-        shipping_city=order_data.shipping_city,
-        shipping_phone=order_data.shipping_phone,
-        payment_method=order_data.payment_method,
-    )
-    db.add(order)
-    db.flush()
-
-    for product, quantity, price in order_items:
-        db.add(
-            OrderItem(
-                order_id=order.id,
-                product_id=product.id,
-                quantity=quantity,
-                price=price,
-            )
+    if order_data.payment_method not in ALLOWED_PAYMENT_METHODS:
+        raise HTTPException(
+            status_code=400,
+            detail="Only Cash on Delivery is available right now",
         )
-        product.stock -= quantity
 
-    db.query(CartItem).filter(CartItem.user_id == current_user.id).delete()
-    db.commit()
+    subtotal = Decimal("0")
+    order_items: list[tuple[Product, int, Decimal]] = []
+
+    try:
+        for item in order_data.items:
+            query = db.query(Product).filter(Product.id == item.product_id)
+            if not settings.database_url.startswith("sqlite"):
+                query = query.with_for_update()
+            product = query.first()
+            if not product:
+                raise HTTPException(
+                    status_code=404,
+                    detail=f"Product {item.product_id} not found",
+                )
+            if product.stock < item.quantity:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Insufficient stock for {product.name}",
+                )
+
+            price = product.sale_price or product.price
+            subtotal += price * item.quantity
+            order_items.append((product, item.quantity, price))
+
+        shipping_amount = calculate_shipping(subtotal)
+        total_amount = subtotal + shipping_amount
+
+        order = Order(
+            user_id=current_user.id,
+            subtotal=subtotal,
+            shipping_amount=shipping_amount,
+            total_amount=total_amount,
+            shipping_address=order_data.shipping_address.strip(),
+            shipping_city=order_data.shipping_city.strip(),
+            shipping_phone=order_data.shipping_phone.strip(),
+            payment_method=order_data.payment_method,
+        )
+        db.add(order)
+        db.flush()
+
+        for product, quantity, price in order_items:
+            db.add(
+                OrderItem(
+                    order_id=order.id,
+                    product_id=product.id,
+                    quantity=quantity,
+                    price=price,
+                )
+            )
+            product.stock -= quantity
+
+        db.query(CartItem).filter(CartItem.user_id == current_user.id).delete()
+        db.commit()
+    except HTTPException:
+        db.rollback()
+        raise
+    except Exception:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Failed to place order")
 
     return (
         db.query(Order)

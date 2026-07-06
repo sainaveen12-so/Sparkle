@@ -167,8 +167,9 @@ def seed_database():
             category_map[cat_data["slug"]] = category.id
 
         for prod_data in PRODUCTS:
-            category_slug = prod_data.pop("category_slug")
-            product = Product(**prod_data, category_id=category_map[category_slug])
+            category_slug = prod_data["category_slug"]
+            product_fields = {k: v for k, v in prod_data.items() if k != "category_slug"}
+            product = Product(**product_fields, category_id=category_map[category_slug])
             db.add(product)
 
         db.commit()

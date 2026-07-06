@@ -10,6 +10,8 @@ class Order(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     status = Column(String(50), default="pending")
+    subtotal = Column(Numeric(10, 2), nullable=False)
+    shipping_amount = Column(Numeric(10, 2), nullable=False, default=0)
     total_amount = Column(Numeric(10, 2), nullable=False)
     shipping_address = Column(String(500), nullable=False)
     shipping_city = Column(String(100), nullable=False)

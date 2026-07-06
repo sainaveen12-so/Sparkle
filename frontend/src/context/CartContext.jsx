@@ -30,9 +30,13 @@ export function CartProvider({ children }) {
   }, [fetchCart])
 
   const addToCart = async (productId, quantity = 1) => {
-    const res = await api.post('/cart', { product_id: productId, quantity })
-    await fetchCart()
-    return res.data
+    try {
+      const res = await api.post('/cart', { product_id: productId, quantity })
+      await fetchCart()
+      return res.data
+    } catch (err) {
+      throw err
+    }
   }
 
   const updateQuantity = async (itemId, quantity) => {

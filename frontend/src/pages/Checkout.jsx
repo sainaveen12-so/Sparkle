@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import api from '../api/client'
+import { calculateShipping } from '../utils/commerce'
 import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
 
@@ -40,7 +41,7 @@ export default function Checkout() {
     )
   }
 
-  const shipping = cartTotal >= 5000 ? 0 : 199
+  const shipping = calculateShipping(cartTotal)
   const total = cartTotal + shipping
 
   const handleSubmit = async (e) => {
@@ -108,9 +109,10 @@ export default function Checkout() {
                 onChange={(e) => setForm({ ...form, payment_method: e.target.value })}
               >
                 <option value="cod">Cash on Delivery</option>
-                <option value="upi">UPI</option>
-                <option value="card">Credit/Debit Card</option>
               </select>
+              <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>
+                UPI and card payments coming soon.
+              </p>
             </div>
 
             <button type="submit" className="btn btn-primary" disabled={loading}>

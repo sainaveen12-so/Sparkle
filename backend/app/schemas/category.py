@@ -10,5 +10,4 @@ class CategoryResponse(BaseModel):
     description: Optional[str] = None
     image_url: Optional[str] = None
 
-    class Config:
-        from_attributes = True
+    model_config = {"from_attributes": True}

@@ -29,6 +29,9 @@ html {
 body {
   font-family: var(--font-sans);
   background-color: var(--cream);
+  background-image:
+    radial-gradient(circle at 20% 20%, rgba(197, 160, 40, 0.04) 0%, transparent 45%),
+    radial-gradient(circle at 80% 80%, rgba(197, 160, 40, 0.03) 0%, transparent 45%);
   color: var(--text-dark);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;

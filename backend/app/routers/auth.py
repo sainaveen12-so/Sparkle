@@ -14,6 +14,7 @@ from app.schemas.user import (
     VerifyOtpRequest,
 )
 from app.services.otp import create_otp, normalize_phone, verify_otp
+from app.services.sms import send_otp_sms
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
@@ -28,15 +29,32 @@ def send_otp(payload: SendOtpRequest, db: Session = Depends(get_db)):
     is_new_user = db.query(User).filter(User.phone == phone).first() is None
     _, otp = create_otp(db, phone)
 
+    sms_provider = (settings.sms_provider or "none").lower()
+    sms_sent = False
+
+    if sms_provider != "none":
+        try:
+            send_otp_sms(phone, otp.code)
+            sms_sent = True
+        except Exception as exc:
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail=f"Failed to send SMS OTP: {exc}",
+            ) from exc
+
     response = SendOtpResponse(
-        message="OTP sent successfully",
+        message="OTP sent to your mobile number" if sms_sent else "OTP generated successfully",
         phone=phone,
         is_new_user=is_new_user,
     )
 
-    if settings.otp_dev_mode:
+    if settings.otp_dev_mode and not sms_sent:
         response.dev_otp = otp.code
+        response.message = "Development mode: OTP shown below (SMS not configured)"
         print(f"[DEV OTP] {phone} -> {otp.code}")
+    elif settings.otp_dev_mode and sms_sent:
+        response.dev_otp = otp.code
+        print(f"[DEV OTP] {phone} -> {otp.code} (SMS also sent)")
 
     return response
 
@@ -62,7 +80,7 @@ def verify_otp_login(payload: VerifyOtpRequest, db: Session = Depends(get_db)):
         user = User(
             phone=phone,
             full_name=payload.full_name.strip(),
-            email=None,
+            email=f"{phone.lstrip('+')}@mobile.sparkle",
             hashed_password=None,
         )
         db.add(user)

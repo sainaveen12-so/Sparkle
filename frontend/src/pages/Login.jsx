@@ -12,6 +12,7 @@ export default function Login() {
   const [fullName, setFullName] = useState('')
   const [isNewUser, setIsNewUser] = useState(false)
   const [devOtp, setDevOtp] = useState('')
+  const [infoMessage, setInfoMessage] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [countdown, setCountdown] = useState(0)
@@ -30,6 +31,7 @@ export default function Login() {
       const res = await sendOtp(phone)
       setIsNewUser(res.is_new_user)
       setDevOtp(res.dev_otp || '')
+      setInfoMessage(res.message || '')
       setStep(2)
       setCountdown(30)
     } catch (err) {
@@ -64,6 +66,7 @@ export default function Login() {
     try {
       const res = await sendOtp(phone)
       setDevOtp(res.dev_otp || '')
+      setInfoMessage(res.message || '')
       setCountdown(30)
     } catch (err) {
       setError(err.response?.data?.detail || 'Failed to resend OTP')
@@ -107,9 +110,13 @@ export default function Login() {
           </form>
         ) : (
           <form onSubmit={handleVerifyOtp}>
+            {infoMessage && !devOtp && (
+              <div className="alert alert-success">{infoMessage}</div>
+            )}
+
             {devOtp && (
               <div className="alert alert-success dev-otp">
-                Dev OTP: <strong>{devOtp}</strong>
+                {infoMessage || 'Development mode'}: <strong>{devOtp}</strong>
               </div>
             )}
 

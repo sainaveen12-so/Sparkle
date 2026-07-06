@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, EmailStr, Field
 
 
 class SendOtpRequest(BaseModel):
@@ -22,8 +22,8 @@ class VerifyOtpRequest(BaseModel):
 
 
 class UserUpdate(BaseModel):
-    full_name: Optional[str] = None
-    email: Optional[str] = None
+    full_name: Optional[str] = Field(default=None, min_length=2, max_length=255)
+    email: Optional[EmailStr] = None
     address: Optional[str] = None
     city: Optional[str] = None
 
@@ -37,8 +37,7 @@ class UserResponse(BaseModel):
     city: Optional[str] = None
     created_at: Optional[datetime] = None
 
-    class Config:
-        from_attributes = True
+    model_config = {"from_attributes": True}
 
 
 class Token(BaseModel):

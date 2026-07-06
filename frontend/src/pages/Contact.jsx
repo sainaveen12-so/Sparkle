@@ -1,13 +1,25 @@
 import { useState } from 'react'
+import api from '../api/client'
 import './Contact.css'
 
 export default function Contact() {
   const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' })
   const [submitted, setSubmitted] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    setSubmitted(true)
+    setLoading(true)
+    setError('')
+    try {
+      await api.post('/contact', form)
+      setSubmitted(true)
+    } catch (err) {
+      setError(err.response?.data?.detail || 'Failed to send message. Please try again.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -47,6 +59,7 @@ export default function Contact() {
               </div>
             ) : (
               <form onSubmit={handleSubmit}>
+                {error && <div className="alert alert-error">{error}</div>}
                 <div className="form-group">
                   <label>Name</label>
                   <input
@@ -83,7 +96,9 @@ export default function Contact() {
                     onChange={(e) => setForm({ ...form, message: e.target.value })}
                   />
                 </div>
-                <button type="submit" className="btn btn-primary">Send Message</button>
+                <button type="submit" className="btn btn-primary" disabled={loading}>
+                  {loading ? 'Sending...' : 'Send Message'}
+                </button>
               </form>
             )}
           </div>

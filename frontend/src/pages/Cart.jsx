@@ -1,3 +1,4 @@
+import { calculateShipping } from '../utils/commerce'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
@@ -39,6 +40,9 @@ export default function Cart() {
     )
   }
 
+  const shipping = calculateShipping(cartTotal)
+  const total = cartTotal + shipping
+
   return (
     <div className="page cart-page">
       <div className="container">
@@ -78,11 +82,11 @@ export default function Cart() {
             </div>
             <div className="summary-row">
               <span>Shipping</span>
-              <span>{cartTotal >= 5000 ? 'Free' : '₹199'}</span>
+              <span>{shipping === 0 ? 'Free' : `₹${shipping}`}</span>
             </div>
             <div className="summary-row total">
               <span>Total</span>
-              <span>₹{(cartTotal + (cartTotal >= 5000 ? 0 : 199)).toLocaleString('en-IN')}</span>
+              <span>₹{total.toLocaleString('en-IN')}</span>
             </div>
             <button className="btn btn-primary" style={{ width: '100%', marginTop: '1.5rem' }} onClick={() => navigate('/checkout')}>
               Proceed to Checkout

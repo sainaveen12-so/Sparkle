@@ -9,6 +9,7 @@ export default function Home() {
   const [newArrivals, setNewArrivals] = useState([])
   const [categories, setCategories] = useState([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
 
   useEffect(() => {
     Promise.all([
@@ -21,10 +22,12 @@ export default function Home() {
         setNewArrivals(newRes.data)
         setCategories(catRes.data)
       })
+      .catch(() => setError('Unable to load products. Please refresh the page.'))
       .finally(() => setLoading(false))
   }, [])
 
   if (loading) return <div className="loading">Loading...</div>
+  if (error) return <div className="loading"><div className="alert alert-error">{error}</div></div>
 
   return (
     <div className="home">
